@@ -58,6 +58,8 @@
         </button>
     </form>
 
+    <x-google-button />
+
     <div class="mt-8 border-t border-line pt-6 text-center text-sm text-ink-soft">
         Orang tua mahasiswa dan belum punya akun?
         <a href="{{ route('register') }}" class="font-semibold text-tazkia-700 hover:text-accent-600 transition">Daftar di sini</a>

@@ -89,6 +89,8 @@
         </p>
     </form>
 
+    <x-google-button />
+
     <div class="mt-6 border-t border-line pt-6 text-center text-sm text-ink-soft">
         Sudah punya akun?
         <a href="{{ route('login') }}" class="font-semibold text-tazkia-700 transition hover:text-accent-600">Masuk</a>
