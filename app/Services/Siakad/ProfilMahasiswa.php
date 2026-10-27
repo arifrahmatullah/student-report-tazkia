@@ -53,6 +53,11 @@ class ProfilMahasiswa
         $berjalan = $taId ? $aktif->firstWhere('tahunAkademikId', $taId) : null;
         $tunggakan = $belum->filter(fn ($t) => ($t['tahunAkademikId'] ?? null) !== $taId);
 
+        // "Harus dibayar sekarang" = termin yang sedang ditagihkan (sudah mengakumulasi termin yang terlewat);
+        // bila tak ada, termin pertama yang menunggak. Nominalnya tidak dijumlahkan dengan termin lain.
+        $cicilan = collect($berjalan['cicilan'] ?? [])->values();
+        $sekarang = $cicilan->firstWhere('status', 'SEDANG_DITAGIHKAN') ?? $cicilan->firstWhere('status', 'LEWAT_JATUH_TEMPO');
+
         return [
             'jumlahTagihan' => $aktif->count(),
             'jumlahLunas' => $aktif->where('lunas', true)->count(),
@@ -67,6 +72,8 @@ class ProfilMahasiswa
                 'totalDibayar' => $berjalan['akumulasiPembayaran'] ?? 0,
                 'sisa' => $berjalan['sisa'] ?? 0,
                 'jatuhTempo' => $berjalan['jatuhTempo'] ?? null,
+                'cicilan' => $cicilan->all(),
+                'sekarang' => ($berjalan['sisa'] ?? 0) > 0 ? $sekarang : null,
             ] : null,
             'tunggakan' => $tunggakan->sum('sisa'),
         ];

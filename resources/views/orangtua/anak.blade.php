@@ -224,8 +224,15 @@
                             $tunggakan = (float) ($tagihan['tunggakan'] ?? 0);
                             $persenBayar = $totalTagih > 0 ? min(100, $dibayar / $totalTagih * 100) : 100;
                         @endphp
+                        @if ($sekarang = $ini['sekarang'] ?? null)
+                            <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
+                                <div class="text-xs font-medium text-red-700">Harus dibayar sekarang · Termin {{ $sekarang['tahap'] }}</div>
+                                <div class="mt-0.5 text-3xl font-extrabold text-red-800">{{ $rp($sekarang['nominal']) }}</div>
+                                <div class="mt-1 text-xs text-red-700">Jatuh tempo {{ $tgl($sekarang['jatuhTempo'] ?? null) }}</div>
+                            </div>
+                        @endif
                         <div class="mt-4">
-                            <div class="text-xs font-medium text-ink-muted">{{ $ini ? 'Sisa tagihan '.($ini['tahunAkademik'] ?? 'semester ini') : 'Belum dibayar' }}</div>
+                            <div class="text-xs font-medium text-ink-muted">{{ $ini ?'Sisa tagihan '.($ini['tahunAkademik'] ?? 'semester ini') : 'Belum dibayar' }}</div>
                             <div class="mt-0.5 text-3xl font-extrabold {{ $sisa > 0 ? 'text-ink' : 'text-emerald-600' }}">{{ $sisa > 0 ? $rp($sisa) : 'Lunas' }}</div>
                         </div>
 
@@ -244,6 +251,24 @@
                             <div class="flex justify-between"><dt class="text-ink-soft">Tagihan lunas</dt><dd class="font-semibold">{{ $tagihan['jumlahLunas'] ?? 0 }} dari {{ $tagihan['jumlahTagihan'] ?? 0 }}</dd></div>
                             <div class="flex justify-between"><dt class="text-ink-soft">Jatuh tempo terdekat</dt><dd class="font-semibold">{{ $tgl($tagihan['jatuhTempoTerdekat'] ?? null) }}</dd></div>
                         </dl>
+
+                        @if (! empty($ini['cicilan']))
+                            @php
+                                $labelCicilan = ['LUNAS' => ['Lunas', 'text-emerald-700'], 'SEDANG_DITAGIHKAN' => ['Ditagihkan', 'text-tazkia-700'], 'LEWAT_JATUH_TEMPO' => ['Menunggak', 'text-red-700'], 'CICILAN' => ['Berikutnya', 'text-ink-muted']];
+                            @endphp
+                            <details class="mt-4 border-t border-line pt-4 text-sm">
+                                <summary class="cursor-pointer font-semibold text-tazkia-700">Jadwal cicilan ({{ count($ini['cicilan']) }} termin)</summary>
+                                <ul class="mt-3 space-y-2">
+                                    @foreach ($ini['cicilan'] as $c)
+                                        @php [$teks, $warna] = $labelCicilan[$c['status'] ?? ''] ?? [$c['status'] ?? '-', 'text-ink-muted']; @endphp
+                                        <li class="flex items-center justify-between gap-3">
+                                            <span class="text-ink-soft">Termin {{ $c['tahap'] }} · {{ $tgl($c['jatuhTempo'] ?? null) }}</span>
+                                            <span class="text-right"><span class="font-semibold">{{ $rp($c['nominal'] ?? 0) }}</span> <span class="text-xs font-semibold {{ $warna }}">{{ $teks }}</span></span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </details>
+                        @endif
                     @else
                         <p class="mt-4 rounded-xl bg-canvas px-4 py-6 text-center text-sm text-ink-muted">Data belum tersedia saat ini.</p>
                     @endif
