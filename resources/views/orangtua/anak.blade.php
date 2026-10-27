@@ -216,13 +216,16 @@
                     <h2 class="text-lg font-bold text-tazkia-900">Tagihan</h2>
                     @if ($tagihan)
                         @php
-                            $totalTagih = (float) ($tagihan['totalTagih'] ?? 0);
-                            $dibayar = (float) ($tagihan['totalDibayar'] ?? 0);
-                            $sisa = (float) ($tagihan['totalBelumDibayar'] ?? 0);
+                            // Semester berjalan jadi angka utama; bila belum ada tagihannya, pakai total keseluruhan.
+                            $ini = $tagihan['berjalan'] ?? null;
+                            $totalTagih = (float) ($ini['totalTagih'] ?? $tagihan['totalTagih'] ?? 0);
+                            $dibayar = (float) ($ini['totalDibayar'] ?? $tagihan['totalDibayar'] ?? 0);
+                            $sisa = (float) ($ini['sisa'] ?? $tagihan['totalBelumDibayar'] ?? 0);
+                            $tunggakan = (float) ($tagihan['tunggakan'] ?? 0);
                             $persenBayar = $totalTagih > 0 ? min(100, $dibayar / $totalTagih * 100) : 100;
                         @endphp
                         <div class="mt-4">
-                            <div class="text-xs font-medium text-ink-muted">Belum dibayar</div>
+                            <div class="text-xs font-medium text-ink-muted">{{ $ini ? 'Sisa tagihan '.($ini['tahunAkademik'] ?? 'semester ini') : 'Belum dibayar' }}</div>
                             <div class="mt-0.5 text-3xl font-extrabold {{ $sisa > 0 ? 'text-ink' : 'text-emerald-600' }}">{{ $sisa > 0 ? $rp($sisa) : 'Lunas' }}</div>
                         </div>
 
@@ -235,6 +238,9 @@
                         </div>
 
                         <dl class="mt-5 space-y-3 border-t border-line pt-4 text-sm">
+                            @if ($tunggakan > 0)
+                                <div class="flex justify-between"><dt class="text-ink-soft">Tunggakan semester sebelumnya</dt><dd class="font-semibold text-red-700">{{ $rp($tunggakan) }}</dd></div>
+                            @endif
                             <div class="flex justify-between"><dt class="text-ink-soft">Tagihan lunas</dt><dd class="font-semibold">{{ $tagihan['jumlahLunas'] ?? 0 }} dari {{ $tagihan['jumlahTagihan'] ?? 0 }}</dd></div>
                             <div class="flex justify-between"><dt class="text-ink-soft">Jatuh tempo terdekat</dt><dd class="font-semibold">{{ $tgl($tagihan['jatuhTempoTerdekat'] ?? null) }}</dd></div>
                         </dl>

@@ -25,7 +25,7 @@ class ProfilMahasiswa
             'krs' => $this->aman('krs', fn () => $this->siakad->krs($nim, $taId)),
             'riwayatIpk' => $this->aman('riwayat ipk', fn () => $this->siakad->riwayatIpk($nim)),
             'presensi' => $this->aman('presensi', fn () => $this->siakad->presensi($nim, $taId)),
-            'tagihan' => $this->aman('ringkasan tagihan', fn () => $this->siakad->ringkasanTagihan($nim)),
+            'tagihan' => $this->aman('tagihan', fn () => $this->ringkasTagihan($nim, $taId)),
             'masaKrs' => $this->masaKrs($aktif),
         ];
         $data['perhatian'] = $this->perhatian($data);
@@ -37,6 +37,39 @@ class ProfilMahasiswa
     public function ringkas(string $nim): ?array
     {
         return $this->aman('mahasiswa', fn () => $this->siakad->mahasiswa($nim));
+    }
+
+    /**
+     * Ringkasan tagihan dihitung dari daftar tagihan, bukan dari /tagihan/ringkasan: endpoint itu ikut menjumlahkan
+     * tagihan berstatus DIGABUNG (sudah dilebur ke tagihan lain), sehingga sisa terlihat lebih besar dari yang sebenarnya.
+     * Hanya tagihan AKTIF yang dihitung; semester berjalan dipisah dari tunggakan semester sebelumnya.
+     *
+     * @return array<string,mixed>
+     */
+    public function ringkasTagihan(string $nim, ?string $taId): array
+    {
+        $aktif = collect($this->siakad->tagihan($nim))->where('status', 'AKTIF')->values();
+        $belum = $aktif->filter(fn ($t) => ($t['sisa'] ?? 0) > 0);
+        $berjalan = $taId ? $aktif->firstWhere('tahunAkademikId', $taId) : null;
+        $tunggakan = $belum->filter(fn ($t) => ($t['tahunAkademikId'] ?? null) !== $taId);
+
+        return [
+            'jumlahTagihan' => $aktif->count(),
+            'jumlahLunas' => $aktif->where('lunas', true)->count(),
+            'totalTagih' => $aktif->sum('nominalTagih'),
+            'totalDibayar' => $aktif->sum('akumulasiPembayaran'),
+            'totalBelumDibayar' => $belum->sum('sisa'),
+            'jatuhTempoTerdekat' => $belum->pluck('jatuhTempo')->filter()->min(),
+            'jumlahLewatJatuhTempo' => $belum->where('lewatJatuhTempo', true)->count(),
+            'berjalan' => $berjalan ? [
+                'tahunAkademik' => $berjalan['tahunAkademik'] ?? null,
+                'totalTagih' => $berjalan['nominalTagih'] ?? 0,
+                'totalDibayar' => $berjalan['akumulasiPembayaran'] ?? 0,
+                'sisa' => $berjalan['sisa'] ?? 0,
+                'jatuhTempo' => $berjalan['jatuhTempo'] ?? null,
+            ] : null,
+            'tunggakan' => $tunggakan->sum('sisa'),
+        ];
     }
 
     /** Batas kehadiran (persen) di bawah mana orang tua perlu diberi tahu. */
