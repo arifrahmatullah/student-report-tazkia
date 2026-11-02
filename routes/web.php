@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BerandaController as AdminBerandaController;
 use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\PenandatanganController;
+use App\Http\Controllers\Admin\PenggunaController;
 use App\Http\Controllers\Akademik\BerandaController as AkademikBerandaController;
 use App\Http\Controllers\Akademik\LogWaController;
 use App\Http\Controllers\Akademik\PesanController as AkademikPesanController;
@@ -48,6 +49,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('penandatangan', PenandatanganController::class)->except(['show'])
         ->parameters(['penandatangan' => 'penandatangan']);
     Route::get('penandatangan/{penandatangan}/ttd', [PenandatanganController::class, 'ttd'])->name('penandatangan.ttd');
+
+    Route::resource('pengguna', PenggunaController::class)->only(['index', 'create', 'store', 'edit', 'update'])
+        ->parameters(['pengguna' => 'pengguna']);
 });
 
 Route::middleware(['auth', 'role:akademik|admin'])->prefix('akademik')->name('akademik.')->group(function () {

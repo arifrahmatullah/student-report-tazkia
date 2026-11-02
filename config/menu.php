@@ -19,5 +19,6 @@ return [
         ['label' => 'Reminder KRS', 'route' => 'akademik.reminder-krs.index', 'aktif' => 'akademik.reminder-krs.*'],
         ['label' => 'Log WhatsApp', 'route' => 'akademik.log-wa.index', 'aktif' => 'akademik.log-wa.*'],
         ['label' => 'Penandatangan', 'route' => 'admin.penandatangan.index', 'aktif' => 'admin.penandatangan.*'],
+        ['label' => 'Pengguna', 'route' => 'admin.pengguna.index', 'aktif' => 'admin.pengguna.*'],
     ],
 ];
